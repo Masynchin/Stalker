@@ -21,7 +21,8 @@ class Database:
 
                 CREATE TABLE IF NOT EXISTS videos (
                     id INTEGER PRIMARY KEY,
-                    title TEXT
+                    title TEXT,
+                    channel_id INTEGER REFERENCES channels(id)
                 );
                 CREATE TABLE IF NOT EXISTS comments (
                     id INTEGER PRIMARY KEY,
@@ -30,15 +31,24 @@ class Database:
                     content TEXT,
                     created_at DATETIME
                 );
-            """
+                CREATE TABLE IF NOT EXISTS channels (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT
+                );
+                """
             )
             yield cls(conn)
 
     def add_user(self, id: int, username: str):
-        self.conn.execute("INSERT INTO users VALUES(?, ?)", (id, username))
+        self.conn.execute(
+            "INSERT INTO users(id, username) VALUES(?, ?)", (id, username)
+        )
 
-    def add_video(self, id: int, title: str):
-        self.conn.execute("INSERT INTO videos VALUES(?, ?)", (id, title))
+    def add_video(self, id: int, title: str, channel_id: int):
+        self.conn.execute(
+            "INSERT INTO videos(id, title, channel_id) VALUES(?, ?, ?)",
+            (id, title, channel_id)
+        )
 
     def add_comment(
         self,
@@ -51,4 +61,9 @@ class Database:
         self.conn.execute(
             "INSERT INTO comments VALUES(?, ?, ?, ?, ?)",
             (id, author_id, video_id, content, created_at),
+        )
+
+    def add_channel(self, id: int, name: str):
+        self.conn.execute(
+            "INSERT INTO channels(id, name) VALUES(?, ?)", (id, name)
         )

@@ -1,1 +1,2 @@
+Faker==19.6.2
 python-youtube==0.9.1

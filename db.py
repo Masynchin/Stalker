@@ -67,3 +67,8 @@ class Database:
         self.conn.execute(
             "INSERT INTO channels(id, name) VALUES(?, ?)", (id, name)
         )
+
+    def select(self, query: str):
+        cursor = self.conn.execute(query)
+        columns = next(zip(*cursor.description))
+        return (columns, cursor.fetchall())

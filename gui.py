@@ -3,22 +3,42 @@ from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
 
 
-class GUI:
+class GUI(QtWidgets.QMainWindow):
     def __init__(self, db):
         self.db = db
 
     def run(self):
         app = QtWidgets.QApplication(sys.argv)
-        window = MainWindow(["Id", "Name", "Age"], [
-            [4, 9, 2],
-            [1, 0, 0],
-            [3, 5, 0],
-            [3, 3, 2],
-            [7, 8, 9],
-        ])
-        window.show()
 
+        super().__init__()
+        self.setCentralWidget(RunQueryWindow(self.db))
+        self.show()
         app.exec()
+
+
+class RunQueryWindow(QtWidgets.QWidget):
+    def __init__(self, db):
+        super().__init__()
+
+        self.db = db
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        self.input = QtWidgets.QLineEdit()
+        layout.addWidget(self.input)
+
+        run_query_button = QtWidgets.QPushButton("Выполнить запросик")
+        run_query_button.clicked.connect(self.run_query)
+        layout.addWidget(run_query_button)
+
+        self.table = QtWidgets.QTableView()
+        layout.addWidget(self.table)
+
+    def run_query(self):
+        query = self.input.text()
+        (columns, comments) = self.db.select(query)
+        self.table.setModel(TableModel(columns, comments))
 
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -46,15 +66,3 @@ class TableModel(QtCore.QAbstractTableModel):
 
             if orientation == Qt.Orientation.Vertical:
                 return section + 1
-
-
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, columns, data):
-        super().__init__()
-
-        self.table = QtWidgets.QTableView()
-
-        self.model = TableModel(columns, data)
-        self.table.setModel(self.model)
-
-        self.setCentralWidget(self.table)

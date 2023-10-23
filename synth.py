@@ -40,13 +40,13 @@ def gen(
     return channels, videos, users, comments
 
 
-channels, videos, users, comments = gen(20, 500, 2000, 10000)
-with Database.initialize(":memory:") as db:
+def insert(db: Database, *args):
+    channels, videos, users, comments = gen(*args)
     for channel in channels:
         db.add_channel(*channel)
     for video in videos:
-        db.add_channel(*video)
+        db.add_video(*video)
     for user in users:
-        db.add_channel(*user)
+        db.add_user(*user)
     for comment in comments:
-        db.add_channel(*comment)
+        db.add_comment(*comment)

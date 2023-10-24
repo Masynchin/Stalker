@@ -32,13 +32,20 @@ class RunQueryWindow(QtWidgets.QWidget):
         run_query_button.clicked.connect(self.run_query)
         layout.addWidget(run_query_button)
 
+        self.error_label = QtWidgets.QLabel()
+        layout.addWidget(self.error_label)
+
         self.table = QtWidgets.QTableView()
         layout.addWidget(self.table)
 
     def run_query(self):
         query = self.input.text()
-        (columns, comments) = self.db.select(query)
-        self.table.setModel(TableModel(columns, comments))
+        try:
+            (columns, comments) = self.db.select(query)
+            self.table.setModel(TableModel(columns, comments))
+            self.error_label.setText("Запрос прошёл успешно!")
+        except Exception as e:
+            self.error_label.setText(str(e))
 
 
 class TableModel(QtCore.QAbstractTableModel):

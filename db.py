@@ -68,7 +68,39 @@ class Database:
             "INSERT INTO channels(id, name) VALUES(?, ?)", (id, name)
         )
 
-    def select(self, query: str):
-        cursor = self.conn.execute(query)
+    def run(self, query: str, args: list[any]):
+        cursor = self.conn.execute(query, args)
         columns = next(zip(*cursor.description))
         return (columns, cursor.fetchall())
+
+    def select(self, query: str):
+        return self.run(query, args=[])
+
+    def comments(
+        self,
+        after: dt.date,
+        until: dt.date,
+        username: str,
+        title: str,
+        content: str,
+    ):
+        return self.run(
+            """
+            SELECT comments.id
+                 , users.username
+                 , videos.title
+                 , comments.content
+                 , comments.created_at
+            FROM comments
+            JOIN users
+              ON users.id = comments.author_id
+            JOIN videos
+              ON videos.id = comments.video_id
+            WHERE comments.created_at >= ?
+              AND comments.created_at <= ?
+              AND users.username LIKE ?
+              AND videos.title LIKE ?
+              AND comments.content LIKE ?
+            """,
+            [after, until, f"%{username}%", f"%{title}%", f"%{content}%"]
+        )

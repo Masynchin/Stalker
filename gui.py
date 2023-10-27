@@ -44,7 +44,7 @@ class RunQueryWindow(QtWidgets.QWidget):
         self.error_label = QtWidgets.QLabel()
         layout.addWidget(self.error_label)
 
-        self.table = QtWidgets.QTableView()
+        self.table = SortableTable()
         layout.addWidget(self.table)
 
     def run_query(self):
@@ -55,36 +55,6 @@ class RunQueryWindow(QtWidgets.QWidget):
             self.error_label.setText("Запрос прошёл успешно!")
         except Exception as e:
             self.error_label.setText(str(e))
-
-
-class TableModel(QtCore.QAbstractTableModel):
-    def __init__(self, columns, data):
-        super(TableModel, self).__init__()
-        self.columns = columns
-        self._data = data
-
-    def data(self, index, role):
-        """Cell value wrapper."""
-        if role == Qt.ItemDataRole.DisplayRole:
-            value = self._data[index.row()][index.column()]
-            return value
-
-    def rowCount(self, index):
-        return len(self._data)
-
-    def columnCount(self, index):
-        try:
-            return len(self._data[0])
-        except IndexError:
-            return 0
-
-    def headerData(self, section, orientation, role):
-        if role == Qt.ItemDataRole.DisplayRole:
-            if orientation == Qt.Orientation.Horizontal:
-                return self.columns[section]
-
-            if orientation == Qt.Orientation.Vertical:
-                return section + 1
 
 
 class CommentsWindow(QtWidgets.QWidget):
@@ -120,7 +90,7 @@ class CommentsWindow(QtWidgets.QWidget):
         self.error_label = QtWidgets.QLabel("Выполните запросик")
         layout.addWidget(self.error_label)
 
-        self.table = QtWidgets.QTableView()
+        self.table = SortableTable()
         layout.addWidget(self.table)
 
     def run(self):
@@ -167,7 +137,7 @@ class UsersWindow(QtWidgets.QWidget):
         self.error_label = QtWidgets.QLabel("Выполните запросик")
         layout.addWidget(self.error_label)
 
-        self.table = QtWidgets.QTableView()
+        self.table = SortableTable()
         layout.addWidget(self.table)
 
     def run(self):
@@ -183,3 +153,47 @@ class UsersWindow(QtWidgets.QWidget):
         else:
             self.table.setModel(TableModel(columns, users))
             self.error_label.setText("Запрос выполнен успешно")
+
+
+class SortableTable(QtWidgets.QTableView):
+    def __init__(self):
+        super().__init__()
+        self.setSortingEnabled(True)
+
+    def setModel(self, model):
+        proxy = QtCore.QSortFilterProxyModel(self)
+        proxy.setSourceModel(model)
+        super().setModel(proxy)
+
+
+class TableModel(QtCore.QAbstractTableModel):
+    def __init__(self, columns, data):
+        super(TableModel, self).__init__()
+        self.columns = columns
+        self._data = data
+
+    def data(self, index, role):
+        """Cell value wrapper."""
+        if role == Qt.ItemDataRole.DisplayRole:
+            value = self._data[index.row()][index.column()]
+            return value
+
+    def rowCount(self, index):
+        return len(self._data)
+
+    def columnCount(self, index):
+        try:
+            return len(self._data[0])
+        except IndexError:
+            return 0
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal:
+                return self.columns[section]
+
+            if orientation == Qt.Orientation.Vertical:
+                return section + 1
+
+    def cellClicked(self, row, col):
+        print(row, col)

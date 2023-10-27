@@ -113,3 +113,20 @@ class Database:
             """,
             [after, until, f"%{username}%", f"%{title}%", f"%{content}%"]
         )
+
+    def users(self, username: str, lower_bound: int, upper_bound: int):
+        return self.run(
+            """
+            SELECT users.id
+                 , users.username
+                 , count(users.id) AS comments_count
+            FROM users
+            JOIN comments
+              ON users.id = comments.author_id
+            GROUP BY comments.author_id
+            HAVING users.username LIKE ?
+               AND count(users.id) >= ?
+               AND count(users.id) <= ?
+            """,
+            [f"%{username}%", lower_bound, upper_bound]
+        )

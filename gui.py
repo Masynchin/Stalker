@@ -21,6 +21,7 @@ class MainWidget(QtWidgets.QTabWidget):
         super().__init__()
 
         self.addTab(CommentsWindow(db), "Комментарии")
+        self.addTab(UsersWindow(db), "Пользователи")
         self.addTab(RunQueryWindow(db), "Свой запрос")
 
 
@@ -136,4 +137,49 @@ class CommentsWindow(QtWidgets.QWidget):
             self.error_label.setText(str(e))
         else:
             self.table.setModel(TableModel(columns, comments))
+            self.error_label.setText("Запрос выполнен успешно")
+
+
+class UsersWindow(QtWidgets.QWidget):
+    def __init__(self, db):
+        super().__init__()
+
+        self.db = db
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        form = QtWidgets.QFormLayout()
+        layout.addLayout(form)
+
+        self.lower_bound = QtWidgets.QSpinBox(self)
+        form.addRow("Не менее комментариев:", self.lower_bound)
+        self.upper_bound = QtWidgets.QSpinBox(self)
+        form.addRow("Не более комментариев:", self.upper_bound)
+
+        self.username_field = QtWidgets.QLineEdit(self)
+        form.addRow("Имя пользователя:", self.username_field)
+
+        exec_button = QtWidgets.QPushButton("Выполнить запрос")
+        exec_button.clicked.connect(self.run)
+        form.addRow(exec_button)
+
+        self.error_label = QtWidgets.QLabel("Выполните запросик")
+        layout.addWidget(self.error_label)
+
+        self.table = QtWidgets.QTableView()
+        layout.addWidget(self.table)
+
+    def run(self):
+        username = self.username_field.text()
+        lower_bound = self.lower_bound.value()
+        upper_bound = self.upper_bound.value()
+        try:
+            (columns, users) = self.db.users(
+                username, lower_bound, upper_bound
+            )
+        except Exception as e:
+            self.error_label.setText(str(e))
+        else:
+            self.table.setModel(TableModel(columns, users))
             self.error_label.setText("Запрос выполнен успешно")

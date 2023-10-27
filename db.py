@@ -39,6 +39,9 @@ class Database:
             )
             yield cls(conn)
 
+    def commit(self):
+        self.conn.commit()
+
     def add_user(self, id: int, username: str):
         self.conn.execute(
             "INSERT INTO users(id, username) VALUES(?, ?)", (id, username)
@@ -69,9 +72,15 @@ class Database:
         )
 
     def run(self, query: str, args: list[any]):
-        cursor = self.conn.execute(query, args)
-        columns = next(zip(*cursor.description))
-        return (columns, cursor.fetchall())
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("BEGIN TRANSACTION;")
+            cursor.execute(query, args)
+            columns = next(zip(*cursor.description))
+            rows = cursor.fetchall()
+            return (columns, rows)
+        finally:
+            self.conn.rollback()
 
     def select(self, query: str):
         return self.run(query, args=[])

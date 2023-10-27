@@ -5,4 +5,5 @@ from synth import insert
 
 with Database.initialize(":memory:") as db:
     insert(db, 20, 500, 2000, 10000)
+    db.commit()
     GUI(db).run()
